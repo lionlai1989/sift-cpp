@@ -14,14 +14,16 @@ Image::Image(const Eigen::MatrixXd &input_matrix){
     height = input_matrix.rows();
     channels = 1;
 
+    auto max_value = input_matrix.maxCoeff();
+
     size = width * height * channels;
-    data = new float[size]; 
+    data = new double[size]; 
     for (int x = 0; x < width; x++) {
         for (int y = 0; y < height; y++) {
             for (int c = 0; c < channels; c++) {
                 int src_idx = y*width*channels + x*channels + c;
                 int dst_idx = c*height*width + y*width + x;
-                data[dst_idx] = input_matrix.coeff(y, x);
+                data[dst_idx] = input_matrix.coeff(y, x)/max_value;
             }
         }
     }
@@ -39,7 +41,7 @@ Image::Image(std::string file_path)
     }
 
     size = width * height * channels;
-    data = new float[size]; 
+    data = new double[size]; 
     for (int x = 0; x < width; x++) {
         for (int y = 0; y < height; y++) {
             for (int c = 0; c < channels; c++) {
@@ -59,7 +61,7 @@ Image::Image(int w, int h, int c)
      height {h},
      channels {c},
      size {w*h*c},
-     data {new float[w*h*c]()}
+     data {new double[w*h*c]()}
 {
 }
 
@@ -82,7 +84,7 @@ Image::Image(const Image& other)
      height {other.height},
      channels {other.channels},
      size {other.size},
-     data {new float[other.size]}
+     data {new double[other.size]}
 {
     //std::cout << "copy constructor\n";
     for (int i = 0; i < size; i++)
@@ -98,7 +100,7 @@ Image& Image::operator=(const Image& other)
         height = other.height;
         channels = other.channels;
         size = other.size;
-        data = new float[other.size];
+        data = new double[other.size];
         for (int i = 0; i < other.size; i++)
             data[i] = other.data[i];
     }
@@ -135,15 +137,13 @@ Image& Image::operator=(Image&& other)
 //save image as jpg file
 bool Image::save(std::string file_path)
 {
-    auto max_element = *std::max_element(data , data + size);
-
     unsigned char *out_data = new unsigned char[width*height*channels]; 
     for (int x = 0; x < width; x++) {
         for (int y = 0; y < height; y++) {
             for (int c = 0; c < channels; c++) {
                 int dst_idx = y*width*channels + x*channels + c;
                 int src_idx = c*height*width + y*width + x;
-                out_data[dst_idx] = std::roundf(data[src_idx] * 255. / max_element);
+                out_data[dst_idx] = std::roundf(data[src_idx] * 255.);
             }
         }
     }

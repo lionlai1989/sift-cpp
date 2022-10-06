@@ -18,7 +18,7 @@ struct Image {
     int height;
     int channels;
     int size;
-    float *data;
+    double *data;
     bool save(std::string file_path);
     void set_pixel(int x, int y, int c, float val);
     float get_pixel(int x, int y, int c) const;
