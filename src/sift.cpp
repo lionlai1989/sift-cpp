@@ -13,24 +13,24 @@
 
 namespace sift {
 
-ScaleSpacePyramid generate_gaussian_pyramid(const Image& img, float sigma_min,
+ScaleSpacePyramid generate_gaussian_pyramid(const Image& img, double sigma_min,
                                             int num_octaves, int scales_per_octave)
 {
     // assume initial sigma is 1.0 (after resizing) and smooth
     // the image with sigma_diff to reach requried base_sigma
-    float base_sigma = sigma_min / MIN_PIX_DIST;
+    double base_sigma = sigma_min / MIN_PIX_DIST;
     Image base_img = img.resize(img.width*2, img.height*2, Interpolation::BILINEAR);
-    float sigma_diff = std::sqrt(base_sigma*base_sigma - 1.0f);
+    double sigma_diff = std::sqrt(base_sigma*base_sigma - 1.0f);
     base_img = gaussian_blur(base_img, sigma_diff);
 
     int imgs_per_octave = scales_per_octave + 3;
 
     // determine sigma values for bluring
-    float k = std::pow(2, 1.0/scales_per_octave);
-    std::vector<float> sigma_vals {base_sigma};
+    double k = std::pow(2, 1.0/scales_per_octave);
+    std::vector<double> sigma_vals {base_sigma};
     for (int i = 1; i < imgs_per_octave; i++) {
-        float sigma_prev = base_sigma * std::pow(k, i-1);
-        float sigma_total = k * sigma_prev;
+        double sigma_prev = base_sigma * std::pow(k, i-1);
+        double sigma_total = k * sigma_prev;
         sigma_vals.push_back(std::sqrt(sigma_total*sigma_total - sigma_prev*sigma_prev));
     }
 
@@ -84,7 +84,7 @@ bool point_is_extremum(const std::vector<Image>& octave, int scale, int x, int y
     const Image& next = octave[scale+1];
 
     bool is_min = true, is_max = true;
-    float val = img.get_pixel(x, y, 0), neighbor;
+    double val = img.get_pixel(x, y, 0), neighbor;
 
     for (int dx : {-1,0,1}) {
         for (int dy : {-1,0,1}) {
@@ -109,7 +109,7 @@ bool point_is_extremum(const std::vector<Image>& octave, int scale, int x, int y
 // fit a quadratic near the discrete extremum,
 // update the keypoint (interpolated) extremum value
 // and return offsets of the interpolated extremum from the discrete extremum
-std::tuple<float, float, float> fit_quadratic(Keypoint& kp,
+std::tuple<double, double, double> fit_quadratic(Keypoint& kp,
                                               const std::vector<Image>& octave,
                                               int scale)
 {
@@ -117,8 +117,8 @@ std::tuple<float, float, float> fit_quadratic(Keypoint& kp,
     const Image& prev = octave[scale-1];
     const Image& next = octave[scale+1];
 
-    float g1, g2, g3;
-    float h11, h12, h13, h22, h23, h33;
+    double g1, g2, g3;
+    double h11, h12, h13, h22, h23, h33;
     int x = kp.i, y = kp.j;
 
     // gradient 
@@ -138,8 +138,8 @@ std::tuple<float, float, float> fit_quadratic(Keypoint& kp,
           -img.get_pixel(x-1, y+1, 0) + img.get_pixel(x-1, y-1, 0)) * 0.25;
     
     // invert hessian
-    float hinv11, hinv12, hinv13, hinv22, hinv23, hinv33;
-    float det = h11*h22*h33 - h11*h23*h23 - h12*h12*h33 + 2*h12*h13*h23 - h13*h13*h22;
+    double hinv11, hinv12, hinv13, hinv22, hinv23, hinv33;
+    double det = h11*h22*h33 - h11*h23*h23 - h12*h12*h33 + 2*h12*h13*h23 - h13*h13*h22;
     hinv11 = (h22*h33 - h23*h23) / det;
     hinv12 = (h13*h23 - h12*h33) / det;
     hinv13 = (h12*h23 - h13*h22) / det;
@@ -148,29 +148,29 @@ std::tuple<float, float, float> fit_quadratic(Keypoint& kp,
     hinv33 = (h11*h22 - h12*h12) / det;
 
     // find offsets of the interpolated extremum from the discrete extremum
-    float offset_s = -hinv11*g1 - hinv12*g2 - hinv13*g3;
-    float offset_x = -hinv12*g1 - hinv22*g2 - hinv23*g3;
-    float offset_y = -hinv13*g1 - hinv23*g3 - hinv33*g3;
+    double offset_s = -hinv11*g1 - hinv12*g2 - hinv13*g3;
+    double offset_x = -hinv12*g1 - hinv22*g2 - hinv23*g3;
+    double offset_y = -hinv13*g1 - hinv23*g3 - hinv33*g3;
 
-    float interpolated_extrema_val = img.get_pixel(x, y, 0)
+    double interpolated_extrema_val = img.get_pixel(x, y, 0)
                                    + 0.5*(g1*offset_s + g2*offset_x + g3*offset_y);
     kp.extremum_val = interpolated_extrema_val;
     return {offset_s, offset_x, offset_y};
 }
 
-bool point_is_on_edge(const Keypoint& kp, const std::vector<Image>& octave, float edge_thresh=C_EDGE)
+bool point_is_on_edge(const Keypoint& kp, const std::vector<Image>& octave, double edge_thresh=C_EDGE)
 {
     const Image& img = octave[kp.scale];
-    float h11, h12, h22;
+    double h11, h12, h22;
     int x = kp.i, y = kp.j;
     h11 = img.get_pixel(x+1, y, 0) + img.get_pixel(x-1, y, 0) - 2*img.get_pixel(x, y, 0);
     h22 = img.get_pixel(x, y+1, 0) + img.get_pixel(x, y-1, 0) - 2*img.get_pixel(x, y, 0);
     h12 = (img.get_pixel(x+1, y+1, 0) - img.get_pixel(x+1, y-1, 0)
           -img.get_pixel(x-1, y+1, 0) + img.get_pixel(x-1, y-1, 0)) * 0.25;
 
-    float det_hessian = h11*h22 - h12*h12;
-    float tr_hessian = h11 + h22;
-    float edgeness = tr_hessian*tr_hessian / det_hessian;
+    double det_hessian = h11*h22 - h12*h12;
+    double tr_hessian = h11 + h22;
+    double edgeness = tr_hessian*tr_hessian / det_hessian;
 
     if (edgeness > std::pow(edge_thresh+1, 2)/edge_thresh)
         return true;
@@ -178,9 +178,9 @@ bool point_is_on_edge(const Keypoint& kp, const std::vector<Image>& octave, floa
         return false;
 }
 
-void find_input_img_coords(Keypoint& kp, float offset_s, float offset_x, float offset_y,
-                                   float sigma_min=SIGMA_MIN,
-                                   float min_pix_dist=MIN_PIX_DIST, int n_spo=N_SPO)
+void find_input_img_coords(Keypoint& kp, double offset_s, double offset_x, double offset_y,
+                                   double sigma_min=SIGMA_MIN,
+                                   double min_pix_dist=MIN_PIX_DIST, int n_spo=N_SPO)
 {
     kp.sigma = std::pow(2, kp.octave) * sigma_min * std::pow(2, (offset_s+kp.scale)/n_spo);
     kp.x = min_pix_dist * std::pow(2, kp.octave) * (offset_x+kp.i);
@@ -188,14 +188,14 @@ void find_input_img_coords(Keypoint& kp, float offset_s, float offset_x, float o
 }
 
 bool refine_or_discard_keypoint(Keypoint& kp, const std::vector<Image>& octave,
-                                float contrast_thresh, float edge_thresh)
+                                double contrast_thresh, double edge_thresh)
 {
     int k = 0;
     bool kp_is_valid = false; 
     while (k++ < MAX_REFINEMENT_ITERS) {
         auto [offset_s, offset_x, offset_y] = fit_quadratic(kp, octave, kp.scale);
 
-        float max_offset = std::max({std::abs(offset_s),
+        double max_offset = std::max({std::abs(offset_s),
                                      std::abs(offset_x),
                                      std::abs(offset_y)});
         // find nearest discrete coordinates
@@ -215,8 +215,8 @@ bool refine_or_discard_keypoint(Keypoint& kp, const std::vector<Image>& octave,
     return kp_is_valid;
 }
 
-std::vector<Keypoint> find_keypoints(const ScaleSpacePyramid& dog_pyramid, float contrast_thresh,
-                                     float edge_thresh)
+std::vector<Keypoint> find_keypoints(const ScaleSpacePyramid& dog_pyramid, double contrast_thresh,
+                                     double edge_thresh)
 {
     std::vector<Keypoint> keypoints;
     for (int i = 0; i < dog_pyramid.num_octaves; i++) {
@@ -257,7 +257,7 @@ ScaleSpacePyramid generate_gradient_pyramid(const ScaleSpacePyramid& pyramid)
         int height = pyramid.octaves[i][0].height;
         for (int j = 0; j < pyramid.imgs_per_octave; j++) {
             Image grad(width, height, 2);
-            float gx, gy;
+            double gx, gy;
             for (int x = 1; x < grad.width-1; x++) {
                 for (int y = 1; y < grad.height-1; y++) {
                     gx = (pyramid.octaves[i][j].get_pixel(x+1, y, 0)
@@ -275,9 +275,9 @@ ScaleSpacePyramid generate_gradient_pyramid(const ScaleSpacePyramid& pyramid)
 }
 
 // convolve 6x with box filter
-void smooth_histogram(float hist[N_BINS])
+void smooth_histogram(double hist[N_BINS])
 {
-    float tmp_hist[N_BINS];
+    double tmp_hist[N_BINS];
     for (int i = 0; i < 6; i++) {
         for (int j = 0; j < N_BINS; j++) {
             int prev_idx = (j-1+N_BINS)%N_BINS;
@@ -290,25 +290,25 @@ void smooth_histogram(float hist[N_BINS])
     }
 }
 
-std::vector<float> find_keypoint_orientations(Keypoint& kp, 
+std::vector<double> find_keypoint_orientations(Keypoint& kp, 
                                               const ScaleSpacePyramid& grad_pyramid,
-                                              float lambda_ori, float lambda_desc)
+                                              double lambda_ori, double lambda_desc)
 {
-    float pix_dist = MIN_PIX_DIST * std::pow(2, kp.octave);
+    double pix_dist = MIN_PIX_DIST * std::pow(2, kp.octave);
     const Image& img_grad = grad_pyramid.octaves[kp.octave][kp.scale];
 
     // discard kp if too close to image borders 
-    float min_dist_from_border = std::min({kp.x, kp.y, pix_dist*img_grad.width-kp.x,
+    double min_dist_from_border = std::min({kp.x, kp.y, pix_dist*img_grad.width-kp.x,
                                            pix_dist*img_grad.height-kp.y});
     if (min_dist_from_border <= std::sqrt(2)*lambda_desc*kp.sigma) {
         return {};
     }
 
-    float hist[N_BINS] = {};
+    double hist[N_BINS] = {};
     int bin;
-    float gx, gy, grad_norm, weight, theta;
-    float patch_sigma = lambda_ori * kp.sigma;
-    float patch_radius = 3 * patch_sigma;
+    double gx, gy, grad_norm, weight, theta;
+    double patch_sigma = lambda_ori * kp.sigma;
+    double patch_radius = 3 * patch_sigma;
     int x_start = std::round((kp.x - patch_radius)/pix_dist);
     int x_end = std::round((kp.x + patch_radius)/pix_dist);
     int y_start = std::round((kp.y - patch_radius)/pix_dist);
@@ -331,8 +331,8 @@ std::vector<float> find_keypoint_orientations(Keypoint& kp,
     smooth_histogram(hist);
 
     // extract reference orientations
-    float ori_thresh = 0.8, ori_max = 0;
-    std::vector<float> orientations;
+    double ori_thresh = 0.8, ori_max = 0;
+    std::vector<double> orientations;
     for (int j = 0; j < N_BINS; j++) {
         if (hist[j] > ori_max) {
             ori_max = hist[j];
@@ -340,102 +340,102 @@ std::vector<float> find_keypoint_orientations(Keypoint& kp,
     }
     for (int j = 0; j < N_BINS; j++) {
         if (hist[j] >= ori_thresh * ori_max) {
-            float prev = hist[(j-1+N_BINS)%N_BINS], next = hist[(j+1)%N_BINS];
+            double prev = hist[(j-1+N_BINS)%N_BINS], next = hist[(j+1)%N_BINS];
             if (prev > hist[j] || next > hist[j])
                 continue;
-            float theta = 2*M_PI*(j+1)/N_BINS + M_PI/N_BINS*(prev-next)/(prev-2*hist[j]+next);
+            double theta = 2*M_PI*(j+1)/N_BINS + M_PI/N_BINS*(prev-next)/(prev-2*hist[j]+next);
             orientations.push_back(theta);
         }
     }
     return orientations;
 }
 
-void update_histograms(float hist[N_HIST][N_HIST][N_ORI], float x, float y,
-                       float contrib, float theta_mn, float lambda_desc)
+void update_histograms(double hist[N_HIST][N_HIST][N_ORI], double x, double y,
+                       double contrib, double theta_mn, double lambda_desc)
 {
-    float x_i, y_j;
+    double x_i, y_j;
     for (int i = 1; i <= N_HIST; i++) {
-        x_i = (i-(1+(float)N_HIST)/2) * 2*lambda_desc/N_HIST;
+        x_i = (i-(1+(double)N_HIST)/2) * 2*lambda_desc/N_HIST;
         if (std::abs(x_i-x) > 2*lambda_desc/N_HIST)
             continue;
         for (int j = 1; j <= N_HIST; j++) {
-            y_j = (j-(1+(float)N_HIST)/2) * 2*lambda_desc/N_HIST;
+            y_j = (j-(1+(double)N_HIST)/2) * 2*lambda_desc/N_HIST;
             if (std::abs(y_j-y) > 2*lambda_desc/N_HIST)
                 continue;
             
-            float hist_weight = (1 - N_HIST*0.5/lambda_desc*std::abs(x_i-x))
+            double hist_weight = (1 - N_HIST*0.5/lambda_desc*std::abs(x_i-x))
                                *(1 - N_HIST*0.5/lambda_desc*std::abs(y_j-y));
 
             for (int k = 1; k <= N_ORI; k++) {
-                float theta_k = 2*M_PI*(k-1)/N_ORI;
-                float theta_diff = std::fmod(theta_k-theta_mn+2*M_PI, 2*M_PI);
+                double theta_k = 2*M_PI*(k-1)/N_ORI;
+                double theta_diff = std::fmod(theta_k-theta_mn+2*M_PI, 2*M_PI);
                 if (std::abs(theta_diff) >= 2*M_PI/N_ORI)
                     continue;
-                float bin_weight = 1 - N_ORI*0.5/M_PI*std::abs(theta_diff);
+                double bin_weight = 1 - N_ORI*0.5/M_PI*std::abs(theta_diff);
                 hist[i-1][j-1][k-1] += hist_weight*bin_weight*contrib;
             }
         }
     }
 }
 
-void hists_to_vec(float histograms[N_HIST][N_HIST][N_ORI], std::array<uint8_t, 128>& feature_vec)
+void hists_to_vec(double histograms[N_HIST][N_HIST][N_ORI], std::array<uint8_t, 128>& feature_vec)
 {
     int size = N_HIST*N_HIST*N_ORI;
-    float *hist = reinterpret_cast<float *>(histograms);
+    double *hist = reinterpret_cast<double *>(histograms);
 
-    float norm = 0;
+    double norm = 0;
     for (int i = 0; i < size; i++) {
         norm += hist[i] * hist[i];
     }
     norm = std::sqrt(norm);
-    float norm2 = 0;
+    double norm2 = 0;
     for (int i = 0; i < size; i++) {
         hist[i] = std::min(hist[i], 0.2f*norm);
         norm2 += hist[i] * hist[i];
     }
     norm2 = std::sqrt(norm2);
     for (int i = 0; i < size; i++) {
-        float val = std::floor(512*hist[i]/norm2);
+        double val = std::floor(512*hist[i]/norm2);
         feature_vec[i] = std::min((int)val, 255);
     }
 }
 
-void compute_keypoint_descriptor(Keypoint& kp, float theta,
+void compute_keypoint_descriptor(Keypoint& kp, double theta,
                                  const ScaleSpacePyramid& grad_pyramid,
-                                 float lambda_desc)
+                                 double lambda_desc)
 {
-    float pix_dist = MIN_PIX_DIST * std::pow(2, kp.octave);
+    double pix_dist = MIN_PIX_DIST * std::pow(2, kp.octave);
     const Image& img_grad = grad_pyramid.octaves[kp.octave][kp.scale];
-    float histograms[N_HIST][N_HIST][N_ORI] = {0};
+    double histograms[N_HIST][N_HIST][N_ORI] = {0};
 
     //find start and end coords for loops over image patch
-    float half_size = std::sqrt(2)*lambda_desc*kp.sigma*(N_HIST+1.)/N_HIST;
+    double half_size = std::sqrt(2)*lambda_desc*kp.sigma*(N_HIST+1.)/N_HIST;
     int x_start = std::round((kp.x-half_size) / pix_dist);
     int x_end = std::round((kp.x+half_size) / pix_dist);
     int y_start = std::round((kp.y-half_size) / pix_dist);
     int y_end = std::round((kp.y+half_size) / pix_dist);
 
-    float cos_t = std::cos(theta), sin_t = std::sin(theta);
-    float patch_sigma = lambda_desc * kp.sigma;
+    double cos_t = std::cos(theta), sin_t = std::sin(theta);
+    double patch_sigma = lambda_desc * kp.sigma;
     //accumulate samples into histograms
     for (int m = x_start; m <= x_end; m++) {
         for (int n = y_start; n <= y_end; n++) {
             // find normalized coords w.r.t. kp position and reference orientation
-            float x = ((m*pix_dist - kp.x)*cos_t
+            double x = ((m*pix_dist - kp.x)*cos_t
                       +(n*pix_dist - kp.y)*sin_t) / kp.sigma;
-            float y = (-(m*pix_dist - kp.x)*sin_t
+            double y = (-(m*pix_dist - kp.x)*sin_t
                        +(n*pix_dist - kp.y)*cos_t) / kp.sigma;
 
             // verify (x, y) is inside the description patch
             if (std::max(std::abs(x), std::abs(y)) > lambda_desc*(N_HIST+1.)/N_HIST)
                 continue;
 
-            float gx = img_grad.get_pixel(m, n, 0), gy = img_grad.get_pixel(m, n, 1);
-            float theta_mn = std::fmod(std::atan2(gy, gx)-theta+4*M_PI, 2*M_PI);
-            float grad_norm = std::sqrt(gx*gx + gy*gy);
-            float weight = std::exp(-(std::pow(m*pix_dist-kp.x, 2)+std::pow(n*pix_dist-kp.y, 2))
+            double gx = img_grad.get_pixel(m, n, 0), gy = img_grad.get_pixel(m, n, 1);
+            double theta_mn = std::fmod(std::atan2(gy, gx)-theta+4*M_PI, 2*M_PI);
+            double grad_norm = std::sqrt(gx*gx + gy*gy);
+            double weight = std::exp(-(std::pow(m*pix_dist-kp.x, 2)+std::pow(n*pix_dist-kp.y, 2))
                                     /(2*patch_sigma*patch_sigma));
-            float contribution = weight * grad_norm;
+            double contribution = weight * grad_norm;
 
             update_histograms(histograms, x, y, contribution, theta_mn, lambda_desc);
         }
@@ -445,10 +445,10 @@ void compute_keypoint_descriptor(Keypoint& kp, float theta,
     hists_to_vec(histograms, kp.descriptor);
 }
 
-std::vector<Keypoint> find_keypoints_and_descriptors(const Image& img, float sigma_min,
+std::vector<Keypoint> find_keypoints_and_descriptors(const Image& img, double sigma_min,
                                                      int num_octaves, int scales_per_octave, 
-                                                     float contrast_thresh, float edge_thresh, 
-                                                     float lambda_ori, float lambda_desc)
+                                                     double contrast_thresh, double edge_thresh, 
+                                                     double lambda_ori, double lambda_desc)
 {
     assert(img.channels == 1 || img.channels == 3);
 
@@ -462,9 +462,9 @@ std::vector<Keypoint> find_keypoints_and_descriptors(const Image& img, float sig
     std::vector<Keypoint> kps;
 
     for (Keypoint& kp_tmp : tmp_kps) {
-        std::vector<float> orientations = find_keypoint_orientations(kp_tmp, grad_pyramid,
+        std::vector<double> orientations = find_keypoint_orientations(kp_tmp, grad_pyramid,
                                                                      lambda_ori, lambda_desc);
-        for (float theta : orientations) {
+        for (double theta : orientations) {
             Keypoint kp = kp_tmp;
             compute_keypoint_descriptor(kp, theta, grad_pyramid, lambda_desc);
             kps.push_back(kp);
@@ -473,9 +473,9 @@ std::vector<Keypoint> find_keypoints_and_descriptors(const Image& img, float sig
     return kps;
 }
 
-float euclidean_dist(std::array<uint8_t, 128>& a, std::array<uint8_t, 128>& b)
+double euclidean_dist(std::array<uint8_t, 128>& a, std::array<uint8_t, 128>& b)
 {
-    float dist = 0;
+    double dist = 0;
     for (int i = 0; i < 128; i++) {
         int di = (int)a[i] - b[i];
         dist += di * di;
@@ -485,8 +485,8 @@ float euclidean_dist(std::array<uint8_t, 128>& a, std::array<uint8_t, 128>& b)
 
 std::vector<std::pair<int, int>> find_keypoint_matches(std::vector<Keypoint>& a,
                                                        std::vector<Keypoint>& b,
-                                                       float thresh_relative,
-                                                       float thresh_absolute)
+                                                       double thresh_relative,
+                                                       double thresh_absolute)
 {
     assert(a.size() >= 2 && b.size() >= 2);
 
@@ -495,9 +495,9 @@ std::vector<std::pair<int, int>> find_keypoint_matches(std::vector<Keypoint>& a,
     for (int i = 0; i < a.size(); i++) {
         // find two nearest neighbours in b for current keypoint from a
         int nn1_idx = -1;
-        float nn1_dist = 100000000, nn2_dist = 100000000;
+        double nn1_dist = 100000000, nn2_dist = 100000000;
         for (int j = 0; j < b.size(); j++) {
-            float dist = euclidean_dist(a[i].descriptor, b[j].descriptor);
+            double dist = euclidean_dist(a[i].descriptor, b[j].descriptor);
             if (dist < nn1_dist) {
                 nn2_dist = nn1_dist;
                 nn1_dist = dist;

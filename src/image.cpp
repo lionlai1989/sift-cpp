@@ -10,29 +10,30 @@
 #include "stb_image_write.h"
 
 Image::Image(const Eigen::MatrixXd &input_matrix){
-    width = input_matrix.cols();
-    height = input_matrix.rows();
-    channels = 1;
+    this->width = input_matrix.cols();
+    this->height = input_matrix.rows();
+    this->channels = 1;
 
-    auto max_value = input_matrix.maxCoeff();
+    //auto max_value = input_matrix.maxCoeff();
 
-    size = width * height * channels;
-    data = new double[size]; 
-    for (int x = 0; x < width; x++) {
-        for (int y = 0; y < height; y++) {
-            for (int c = 0; c < channels; c++) {
-                int src_idx = y*width*channels + x*channels + c;
-                int dst_idx = c*height*width + y*width + x;
-                data[dst_idx] = input_matrix.coeff(y, x)/max_value;
+    this->size = this->width * this->height * this->channels;
+    this->data = new double[this->size];
+
+    for (int x = 0; x < this->width; x++) {
+        for (int y = 0; y < this->height; y++) {
+            for (int c = 0; c < this->channels; c++) {
+                //int src_idx = y*this->width*this->channels + x*this->channels + c;
+                int dst_idx = c*this->height*this->width + y*this->width + x;
+                //this->data[dst_idx] = input_matrix.coeff(y, x)/max_value;
+                this->data[dst_idx] = input_matrix.coeff(y, x);
             }
         }
     }
-
 }
 
 Image::Image(std::string file_path)
 {
-    unsigned char *img_data = stbi_load(file_path.c_str(), &width, &height, &channels, 0);
+    unsigned char *img_data = stbi_load(file_path.c_str(), &this->width, &this->height, &this->channels, 0);
     if (img_data == nullptr) {
         const char *error_msg = stbi_failure_reason();
         std::cerr << "Failed to load image: " << file_path.c_str() << "\n";
@@ -40,19 +41,19 @@ Image::Image(std::string file_path)
         std::exit(1);
     }
 
-    size = width * height * channels;
-    data = new double[size]; 
-    for (int x = 0; x < width; x++) {
-        for (int y = 0; y < height; y++) {
-            for (int c = 0; c < channels; c++) {
-                int src_idx = y*width*channels + x*channels + c;
-                int dst_idx = c*height*width + y*width + x;
-                data[dst_idx] = img_data[src_idx] / 255.;
+    this->size = this->width * this->height * this->channels;
+    this->data = new double[this->size]; 
+    for (int x = 0; x < this->width; x++) {
+        for (int y = 0; y < this->height; y++) {
+            for (int c = 0; c < this->channels; c++) {
+                int src_idx = y*this->width*this->channels + x*this->channels + c;
+                int dst_idx = c*this->height*this->width + y*this->width + x;
+                this->data[dst_idx] = img_data[src_idx] / 255.;
             }
         }
     }
-    if (channels == 4)
-        channels = 3; //ignore alpha channel
+    if (this->channels == 4)
+        this->channels = 3; //ignore alpha channel
     stbi_image_free(img_data);
 }
 
@@ -137,17 +138,17 @@ Image& Image::operator=(Image&& other)
 //save image as jpg file
 bool Image::save(std::string file_path)
 {
-    unsigned char *out_data = new unsigned char[width*height*channels]; 
-    for (int x = 0; x < width; x++) {
-        for (int y = 0; y < height; y++) {
-            for (int c = 0; c < channels; c++) {
-                int dst_idx = y*width*channels + x*channels + c;
-                int src_idx = c*height*width + y*width + x;
-                out_data[dst_idx] = std::roundf(data[src_idx] * 255.);
+    unsigned char *out_data = new unsigned char[this->width*this->height*this->channels]; 
+    for (int x = 0; x < this->width; x++) {
+        for (int y = 0; y < this->height; y++) {
+            for (int c = 0; c < this->channels; c++) {
+                int dst_idx = y*this->width*this->channels + x*this->channels + c;
+                int src_idx = c*this->height*this->width + y*this->width + x;
+                out_data[dst_idx] = std::roundf(this->data[src_idx] * 255.);
             }
         }
     }
-    bool success = stbi_write_jpg(file_path.c_str(), width, height, channels, out_data, 100);
+    bool success = stbi_write_jpg(file_path.c_str(), this->width, this->height, this->channels, out_data, 100);
     if (!success)
         std::cerr << "Failed to save image: " << file_path << "\n";
 
@@ -155,56 +156,56 @@ bool Image::save(std::string file_path)
     return true;
 }
 
-void Image::set_pixel(int x, int y, int c, float val)
+void Image::set_pixel(int x, int y, int c, double val)
 {
-    if (x >= width || x < 0 || y >= height || y < 0 || c >= channels || c < 0) {
+    if (x >= this->width || x < 0 || y >= this->height || y < 0 || c >= this->channels || c < 0) {
         std::cerr << "set_pixel() error: Index out of bounds.\n";
         std::exit(1);
     }
-    data[c*width*height + y*width + x] = val;
+    this->data[c*this->width*this->height + y*this->width + x] = val;
 }
 
-float Image::get_pixel(int x, int y, int c) const
+double Image::get_pixel(int x, int y, int c) const
 {
     if (x < 0)
         x = 0;
-    if (x >= width)
-        x = width - 1;
+    if (x >= this->width)
+        x = this->width - 1;
     if (y < 0)
         y = 0;
-    if (y >= height)
-        y = height - 1;
-    return data[c*width*height + y*width + x];
+    if (y >= this->height)
+        y = this->height - 1;
+    return this->data[c*this->width*this->height + y*this->width + x];
 }
 
 void Image::clamp()
 {
-    int size = width * height * channels;
+    int size = this->width * this->height * this->channels;
     for (int i = 0; i < size; i++) {
-        float val = data[i];
+        double val = this->data[i];
         val = (val > 1.0) ? 1.0 : val;
         val = (val < 0.0) ? 0.0 : val;
-        data[i] = val;
+        this->data[i] = val;
     }
 }
 
 //map coordinate from 0-current_max range to 0-new_max range
-float map_coordinate(float new_max, float current_max, float coord)
+double map_coordinate(double new_max, double current_max, double coord)
 {
-    float a = new_max / current_max;
-    float b = -0.5 + a*0.5;
+    double a = new_max / current_max;
+    double b = -0.5 + a*0.5;
     return a*coord + b;
 }
 
 Image Image::resize(int new_w, int new_h, Interpolation method) const
 {
     Image resized(new_w, new_h, this->channels);
-    float value = 0;
+    double value = 0;
     for (int x = 0; x < new_w; x++) {
         for (int y = 0; y < new_h; y++) {
             for (int c = 0; c < resized.channels; c++) {
-                float old_x = map_coordinate(this->width, new_w, x);
-                float old_y = map_coordinate(this->height, new_h, y);
+                double old_x = map_coordinate(this->width, new_w, x);
+                double old_y = map_coordinate(this->height, new_h, y);
                 if (method == Interpolation::BILINEAR)
                     value = bilinear_interpolate(*this, old_x, old_y, c);
                 else if (method == Interpolation::NEAREST)
@@ -216,11 +217,11 @@ Image Image::resize(int new_w, int new_h, Interpolation method) const
     return resized;
 }
 
-float bilinear_interpolate(const Image& img, float x, float y, int c)
+double bilinear_interpolate(const Image& img, double x, double y, int c)
 {
-    float p1, p2, p3, p4, q1, q2;
-    float x_floor = std::floor(x), y_floor = std::floor(y);
-    float x_ceil = x_floor + 1, y_ceil = y_floor + 1;
+    double p1, p2, p3, p4, q1, q2;
+    double x_floor = std::floor(x), y_floor = std::floor(y);
+    double x_ceil = x_floor + 1, y_ceil = y_floor + 1;
     p1 = img.get_pixel(x_floor, y_floor, c);
     p2 = img.get_pixel(x_ceil, y_floor, c);
     p3 = img.get_pixel(x_floor, y_ceil, c);
@@ -230,7 +231,7 @@ float bilinear_interpolate(const Image& img, float x, float y, int c)
     return (x_ceil-x)*q1 + (x-x_floor)*q2;
 }
 
-float nn_interpolate(const Image& img, float x, float y, int c)
+double nn_interpolate(const Image& img, double x, double y, int c)
 {
     return img.get_pixel(std::round(x), std::round(y), c);
 }
@@ -241,7 +242,7 @@ Image rgb_to_grayscale(const Image& img)
     Image gray(img.width, img.height, 1);
     for (int x = 0; x < img.width; x++) {
         for (int y = 0; y < img.height; y++) {
-            float red, green, blue;
+            double red, green, blue;
             red = img.get_pixel(x, y, 0);
             green = img.get_pixel(x, y, 1);
             blue = img.get_pixel(x, y, 2);
@@ -257,7 +258,7 @@ Image grayscale_to_rgb(const Image& img)
     Image rgb(img.width, img.height, 3);
     for (int x = 0; x < img.width; x++) {
         for (int y = 0; y < img.height; y++) {
-            float gray_val = img.get_pixel(x, y, 0);
+            double gray_val = img.get_pixel(x, y, 0);
             rgb.set_pixel(x, y, 0, gray_val);
             rgb.set_pixel(x, y, 1, gray_val);
             rgb.set_pixel(x, y, 2, gray_val);
@@ -267,7 +268,7 @@ Image grayscale_to_rgb(const Image& img)
 }
 
 // separable 2D gaussian blur for 1 channel image
-Image gaussian_blur(const Image& img, float sigma)
+Image gaussian_blur(const Image& img, double sigma)
 {
     assert(img.channels == 1);
 
@@ -276,9 +277,9 @@ Image gaussian_blur(const Image& img, float sigma)
         size++;
     int center = size / 2;
     Image kernel(size, 1, 1);
-    float sum = 0;
+    double sum = 0;
     for (int k = -size/2; k <= size/2; k++) {
-        float val = std::exp(-(k*k) / (2*sigma*sigma));
+        double val = std::exp(-(k*k) / (2*sigma*sigma));
         kernel.set_pixel(center+k, 0, 0, val);
         sum += val;
     }
@@ -291,7 +292,7 @@ Image gaussian_blur(const Image& img, float sigma)
     // convolve vertical
     for (int x = 0; x < img.width; x++) {
         for (int y = 0; y < img.height; y++) {
-            float sum = 0;
+            double sum = 0;
             for (int k = 0; k < size; k++) {
                 int dy = -center + k;
                 sum += img.get_pixel(x, y+dy, 0) * kernel.data[k];
@@ -302,7 +303,7 @@ Image gaussian_blur(const Image& img, float sigma)
     // convolve horizontal
     for (int x = 0; x < img.width; x++) {
         for (int y = 0; y < img.height; y++) {
-            float sum = 0;
+            double sum = 0;
             for (int k = 0; k < size; k++) {
                 int dx = -center + k;
                 sum += tmp.get_pixel(x+dx, y, 0) * kernel.data[k];
