@@ -124,7 +124,7 @@ setup(
     url="https://github.com/lionlai1989/sift-cpp-pybind11",
     description="A C++ implementation of SIFT and binding for Python.",
     long_description="",
-    extras_require={"test": "pytest"},
+    extras_require={"test": ["pytest", "rasterio", "numpy", "rpcm"]},
     # Currently, build_ext only provides an optional "highest supported C++
     # level" feature, but in the future it may provide more features.
 
