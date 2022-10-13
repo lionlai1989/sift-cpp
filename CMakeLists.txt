@@ -13,7 +13,7 @@ project(sift_cpp LANGUAGES CXX)
 add_subdirectory(src)
 add_subdirectory(examples)
 
-include_directories(/usr/local/include/eigen-3.4.0)
+include_directories(./extern/eigen-3.4.0)
 
 add_subdirectory(./extern/pybind11)
 pybind11_add_module(pybind11_wrapper ./pybind11_wrapper.cpp)
