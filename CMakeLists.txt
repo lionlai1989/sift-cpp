@@ -17,5 +17,6 @@ include_directories(./extern/eigen-3.4.0)
 
 add_subdirectory(./extern/pybind11)
 pybind11_add_module(pybind11_wrapper ./pybind11_wrapper.cpp)
+# Figure out what's the difference of include_directories vs target_include_directories
 target_include_directories(pybind11_wrapper PRIVATE ./src)
 target_link_libraries(pybind11_wrapper PUBLIC img sift)

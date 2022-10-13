@@ -1,4 +1,4 @@
-include_directories(./extern/eigen-3.4.0)
+include_directories(../extern/eigen-3.4.0)
 
 add_executable(find_keypoints find_keypoints.cpp)
 
