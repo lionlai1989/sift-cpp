@@ -5,3 +5,18 @@
 [submodule "extern/eigen-3.4.0"]
 	path = extern/eigen-3.4.0
 	url = https://gitlab.com/libeigen/eigen.git
+[submodule "extern/xtensor"]
+	path = extern/xtensor
+	url = git@github.com:xtensor-stack/xtensor.git
+[submodule "extern/xtl"]
+	path = extern/xtl
+	url = git@github.com:xtensor-stack/xtl.git
+[submodule "extern/xsimd"]
+	path = extern/xsimd
+	url = git@github.com:xtensor-stack/xsimd.git
+[submodule "extern/xtensor-python"]
+	path = extern/xtensor-python
+	url = git@github.com:xtensor-stack/xtensor-python.git
+[submodule "extern/stb"]
+	path = extern/stb
+	url = git@github.com:nothings/stb.git
