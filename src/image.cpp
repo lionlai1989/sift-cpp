@@ -134,8 +134,8 @@ bool Image::save(std::string file_path) {
       for (int c = 0; c < this->channels; c++) {
         int dst_idx = y * this->width * this->channels + x * this->channels + c;
         int src_idx = c * this->height * this->width + y * this->width + x;
-        // out_data[dst_idx] = std::roundf(this->data[src_idx] * 255.);
-        out_data[dst_idx] = std::roundf(this->pixels(c, y, x) * 255.);
+        out_data[dst_idx] = std::roundf(this->data[src_idx] * 255.);
+        // out_data[dst_idx] = std::roundf(this->pixels(c, y, x) * 255.);
       }
     }
   }
