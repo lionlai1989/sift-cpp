@@ -135,7 +135,7 @@ bool Image::save(std::string file_path) {
         int dst_idx = y * this->width * this->channels + x * this->channels + c;
         int src_idx = c * this->height * this->width + y * this->width + x;
         // out_data[dst_idx] = std::roundf(this->data[src_idx] * 255.);
-        out_data[dst_idx] = std::roundf(this->pixels(c, y, x) * 255.);
+        out_data[dst_idx] = std::lroundf(this->pixels(c, y, x) * 255.);
       }
     }
   }
@@ -204,10 +204,13 @@ bool Image::operator==(const Image &other) const {
 }
 
 // map coordinate from 0-current_max range to 0-new_max range
+double myround(double d) { return std::floor(d + 0.5); }
 double map_coordinate(double new_max, double current_max, double coord) {
-  double a = new_max / current_max;
-  double b = -0.5 + a * 0.5;
-  return a * coord + b;
+  //   double a = new_max / current_max;
+  //   double b = -0.5 + a * 0.5;
+  //   return a * coord + b;
+  double slope = 1.0 * (new_max) / (current_max);
+  return myround(slope * (coord));
 }
 
 Image Image::resize(int new_w, int new_h, Interpolation method) const {
@@ -216,12 +219,15 @@ Image Image::resize(int new_w, int new_h, Interpolation method) const {
   for (int x = 0; x < new_w; x++) {
     for (int y = 0; y < new_h; y++) {
       for (int c = 0; c < resized.channels; c++) {
-        double old_x = map_coordinate(this->width, new_w, x);
-        double old_y = map_coordinate(this->height, new_h, y);
-        if (method == Interpolation::BILINEAR)
+        assert(x >= 0 && x < new_w && y >= 0 && y < new_h);
+        // NOTE: Array with 100 elements, its max index is 100-1.
+        double old_x = map_coordinate(this->width - 1, new_w - 1, x);
+        double old_y = map_coordinate(this->height - 1, new_h - 1, y);
+        if (method == Interpolation::BILINEAR) {
           value = bilinear_interpolate(*this, old_x, old_y, c);
-        else if (method == Interpolation::NEAREST)
+        } else if (method == Interpolation::NEAREST) {
           value = nn_interpolate(*this, old_x, old_y, c);
+        }
         resized.set_pixel(x, y, c, value);
         resized.pixels(c, y, x) = value;
       }
@@ -232,8 +238,14 @@ Image Image::resize(int new_w, int new_h, Interpolation method) const {
 
 double bilinear_interpolate(const Image &img, double x, double y, int c) {
   double p1, p2, p3, p4, q1, q2;
-  double x_floor = std::floor(x), y_floor = std::floor(y);
-  double x_ceil = x_floor + 1, y_ceil = y_floor + 1;
+  double x_floor = std::floor(x);
+  double y_floor = std::floor(y);
+
+  double x_ceil = (x_floor + 1) > (img.width - 1) ? x_floor : x_floor + 1;
+  double y_ceil = (y_floor + 1) > (img.height - 1) ? y_floor : y_floor + 1;
+  assert(x_floor >= 0 && x_floor < img.width && x_ceil >= 0 &&
+         x_ceil < img.width && y_floor >= 0 && y_floor < img.height &&
+         y_ceil >= 0 && y_ceil < img.height);
   p1 = img.get_pixel(x_floor, y_floor, c);
   p2 = img.get_pixel(x_ceil, y_floor, c);
   p3 = img.get_pixel(x_floor, y_ceil, c);
@@ -244,7 +256,22 @@ double bilinear_interpolate(const Image &img, double x, double y, int c) {
 }
 
 double nn_interpolate(const Image &img, double x, double y, int c) {
-  return img.get_pixel(std::round(x), std::round(y), c);
+
+  int round_x =
+      std::lround(x) > (img.width - 1) ? (img.width - 1) : std::lround(x);
+  int round_y =
+      std::lround(y) > (img.height - 1) ? (img.height - 1) : std::lround(y);
+  if (round_x < 0) {
+    round_x = 0;
+  }
+  if (round_y < 0) {
+    round_y = 0;
+  }
+  assert(round_x >= 0);
+  assert(round_x < img.width);
+  assert(round_y >= 0);
+  assert(round_y < img.height);
+  return img.get_pixel(round_x, round_y, c);
 }
 
 Image rgb_to_grayscale(const Image &img) {
@@ -297,6 +324,7 @@ Image gaussian_blur(const Image &img, double sigma) {
   double sum = 0;
   for (int k = -size / 2; k <= size / 2; k++) {
     double val = std::exp(-(k * k) / (2 * sigma * sigma));
+    assert(center + k >= 0 && center + k < size);
     kernel.set_pixel(center + k, 0, 0, val);
     sum += val;
   }
@@ -308,21 +336,23 @@ Image gaussian_blur(const Image &img, double sigma) {
 
   // convolve vertical
   for (int x = 0; x < img.width; x++) {
-    for (int y = 0; y < img.height; y++) {
+    for (int y = center; y < img.height - center; y++) {
       double sum = 0;
       for (int k = 0; k < size; k++) {
         int dy = -center + k;
+        assert((y + dy) >= 0 && (y + dy) < img.height);
         sum += img.get_pixel(x, y + dy, 0) * kernel.data[k];
       }
       tmp.set_pixel(x, y, 0, sum);
     }
   }
   // convolve horizontal
-  for (int x = 0; x < img.width; x++) {
+  for (int x = center; x < img.width - center; x++) {
     for (int y = 0; y < img.height; y++) {
       double sum = 0;
       for (int k = 0; k < size; k++) {
         int dx = -center + k;
+        assert((x + dx) >= 0 && (x + dx) < img.width);
         sum += tmp.get_pixel(x + dx, y, 0) * kernel.data[k];
       }
       filtered.set_pixel(x, y, 0, sum);
@@ -341,6 +371,8 @@ void draw_point(Image &img, int x, int y, int size) {
         continue;
       if (std::abs(i - x) + std::abs(j - y) > size / 2)
         continue;
+      assert(i >= 0 && j >= 0);
+      assert(i < img.width && j < img.height);
       if (img.channels == 3) {
         img.set_pixel(i, j, 0, 1.f);
         img.set_pixel(i, j, 1, 0.f);
@@ -364,6 +396,8 @@ void draw_line(Image &img, int x1, int y1, int x2, int y2) {
   int dx = x2 - x1, dy = y2 - y1;
   for (int x = x1; x < x2; x++) {
     int y = y1 + dy * (x - x1) / dx;
+    assert(x >= 0 && y >= 0);
+    assert(x < img.width && y < img.height);
     if (img.channels == 3) {
       img.set_pixel(x, y, 0, 0.f);
       img.set_pixel(x, y, 1, 1.f);
