@@ -64,9 +64,6 @@ ScaleSpacePyramid generate_dog_pyramid(const ScaleSpacePyramid &img_pyramid) {
     dog_pyramid.octaves[i].reserve(dog_pyramid.imgs_per_octave);
     for (int j = 1; j < img_pyramid.imgs_per_octave; j++) {
       Image diff = img_pyramid.octaves[i][j];
-      for (int pix_idx = 0; pix_idx < diff.size; pix_idx++) {
-        diff.data[pix_idx] -= img_pyramid.octaves[i][j - 1].data[pix_idx];
-      }
       diff.pixels -= img_pyramid.octaves[i][j - 1].pixels;
       dog_pyramid.octaves[i].push_back(diff);
     }

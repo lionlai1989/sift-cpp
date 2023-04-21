@@ -14,10 +14,12 @@ struct Image {
   Image(int w, int h, int c);
   Image();
   ~Image();
+
   Image(const Image &other);
-  Image &operator=(const Image &other);
   Image(Image &&other);
-  Image &operator=(Image &&other);
+
+  Image &operator=(Image rhs);
+
   bool operator==(const Image &other) const;
 
   int width;
@@ -25,13 +27,13 @@ struct Image {
   int channels;
   int size;
   xt::xtensor<double, 3> pixels;
-  double *data;
 
   bool save(std::string file_path);
   void set_pixel(int x, int y, int c, double val);
   double get_pixel(int x, int y, int c) const;
   void clamp();
   Image resize(int new_w, int new_h, Interpolation method = BILINEAR) const;
+  void _swap(Image &other);
 };
 
 double bilinear_interpolate(const Image &img, double x, double y, int c);
