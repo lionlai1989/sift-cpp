@@ -15,11 +15,11 @@ target_include_directories(img PUBLIC ${CMAKE_SOURCE_DIR}/extern)
 target_link_libraries(img PUBLIC xtensor xtensor::optimize xtensor::use_xsimd stb_image)
 target_compile_features(img PRIVATE cxx_std_17)
 
-# add_library(sift STATIC
-#             sift.cpp
-#             sift.hpp
-# )
+add_library(sift STATIC
+            sift.cpp
+            sift.hpp
+)
 
-# target_link_libraries(sift PUBLIC
-#                       img
-# )
+target_link_libraries(sift PUBLIC
+                      img
+)
