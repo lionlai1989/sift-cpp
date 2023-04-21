@@ -134,8 +134,8 @@ bool Image::save(std::string file_path) {
       for (int c = 0; c < this->channels; c++) {
         int dst_idx = y * this->width * this->channels + x * this->channels + c;
         int src_idx = c * this->height * this->width + y * this->width + x;
-        out_data[dst_idx] = std::roundf(this->data[src_idx] * 255.);
-        // out_data[dst_idx] = std::roundf(this->pixels(c, y, x) * 255.);
+        // out_data[dst_idx] = std::roundf(this->data[src_idx] * 255.);
+        out_data[dst_idx] = std::roundf(this->pixels(c, y, x) * 255.);
       }
     }
   }
@@ -345,8 +345,12 @@ void draw_point(Image &img, int x, int y, int size) {
         img.set_pixel(i, j, 0, 1.f);
         img.set_pixel(i, j, 1, 0.f);
         img.set_pixel(i, j, 2, 0.f);
+        img.pixels(0, j, i) = 1.f;
+        img.pixels(1, j, i) = 0.f;
+        img.pixels(2, j, i) = 0.f;
       } else {
         img.set_pixel(i, j, 0, 1.f);
+        img.pixels(0, j, i) = 1.f;
       }
     }
   }
@@ -364,8 +368,12 @@ void draw_line(Image &img, int x1, int y1, int x2, int y2) {
       img.set_pixel(x, y, 0, 0.f);
       img.set_pixel(x, y, 1, 1.f);
       img.set_pixel(x, y, 2, 0.f);
+      img.pixels(0, y, x) = 0.f;
+      img.pixels(1, y, x) = 1.f;
+      img.pixels(2, y, x) = 0.f;
     } else {
       img.set_pixel(x, y, 0, 1.f);
+      img.pixels(0, y, x) = 1.f;
     }
   }
 }

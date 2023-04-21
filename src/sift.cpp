@@ -67,6 +67,7 @@ ScaleSpacePyramid generate_dog_pyramid(const ScaleSpacePyramid &img_pyramid) {
       for (int pix_idx = 0; pix_idx < diff.size; pix_idx++) {
         diff.data[pix_idx] -= img_pyramid.octaves[i][j - 1].data[pix_idx];
       }
+      diff.pixels -= img_pyramid.octaves[i][j - 1].pixels;
       dog_pyramid.octaves[i].push_back(diff);
     }
   }
@@ -273,10 +274,12 @@ ScaleSpacePyramid generate_gradient_pyramid(const ScaleSpacePyramid &pyramid) {
                 pyramid.octaves[i][j].get_pixel(x - 1, y, 0)) *
                0.5;
           grad.set_pixel(x, y, 0, gx);
+          grad.pixels(0, y, x) = gx;
           gy = (pyramid.octaves[i][j].get_pixel(x, y + 1, 0) -
                 pyramid.octaves[i][j].get_pixel(x, y - 1, 0)) *
                0.5;
           grad.set_pixel(x, y, 1, gy);
+          grad.pixels(1, y, x) = gy;
         }
       }
       grad_pyramid.octaves[i].push_back(grad);
@@ -553,6 +556,9 @@ Image draw_matches(const Image &a, const Image &b, std::vector<Keypoint> &kps_a,
       res.set_pixel(i, j, 0, a.get_pixel(i, j, 0));
       res.set_pixel(i, j, 1, a.get_pixel(i, j, a.channels == 3 ? 1 : 0));
       res.set_pixel(i, j, 2, a.get_pixel(i, j, a.channels == 3 ? 2 : 0));
+      res.pixels(0, j, i) = a.get_pixel(i, j, 0);
+      res.pixels(1, j, i) = a.get_pixel(i, j, a.channels == 3 ? 1 : 0);
+      res.pixels(2, j, i) = a.get_pixel(i, j, a.channels == 3 ? 2 : 0);
     }
   }
   for (int i = 0; i < b.width; i++) {
@@ -562,6 +568,11 @@ Image draw_matches(const Image &a, const Image &b, std::vector<Keypoint> &kps_a,
                     b.get_pixel(i, j, b.channels == 3 ? 1 : 0));
       res.set_pixel(a.width + i, j, 2,
                     b.get_pixel(i, j, b.channels == 3 ? 2 : 0));
+      res.pixels(0, j, a.width + i) = b.get_pixel(i, j, 0);
+      res.pixels(1, j, a.width + i) =
+          b.get_pixel(i, j, b.channels == 3 ? 1 : 0);
+      res.pixels(2, j, a.width + i) =
+          b.get_pixel(i, j, b.channels == 3 ? 2 : 0);
     }
   }
 
