@@ -23,17 +23,17 @@ find_package(xtl REQUIRED)
 find_package(xtensor REQUIRED)
 find_package(xsimd REQUIRED)
 
-# add_subdirectory(extern/xtensor-python)
+add_subdirectory(extern/xtensor-python)
 
 add_subdirectory(src)
-# add_subdirectory(examples)
+add_subdirectory(examples)
 
-# include_directories(./extern/eigen-3.4.0)
+include_directories(./extern/eigen-3.4.0)
 
-# pybind11_add_module(pybind11_wrapper ./pybind11_wrapper.cpp)
+pybind11_add_module(pybind11_wrapper ./pybind11_wrapper.cpp)
 # Figure out what's the difference of include_directories vs target_include_directories
-# target_include_directories(pybind11_wrapper PRIVATE ./src)
-# target_link_libraries(pybind11_wrapper PUBLIC img sift)
+target_include_directories(pybind11_wrapper PRIVATE ./src)
+target_link_libraries(pybind11_wrapper PUBLIC img sift)
 
 # It must be called before adding `tests` subdirectory.
 enable_testing()
