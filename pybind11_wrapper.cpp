@@ -13,7 +13,7 @@ std::vector<sift::Keypoint> computeKeypointsAndDescriptors(const xt::xarray<doub
     return kps;
 }
 
-PYBIND11_MODULE(pybind11_wrapper, m) {
+PYBIND11_MODULE(lion_sift_cpp, m) {
     m.def("computeKeypointsAndDescriptors", &computeKeypointsAndDescriptors);
     py::class_<sift::Keypoint>(m, "sift::Keypoint")
     .def(py::init<>()) // <-- bind the default constructor

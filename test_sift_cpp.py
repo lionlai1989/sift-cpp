@@ -1,4 +1,4 @@
-import pybind11_wrapper
+import lion_sift_cpp
 import numpy as np
 import pickle
 from typing import List, Tuple, Union

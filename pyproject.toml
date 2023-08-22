@@ -12,7 +12,7 @@ build-backend = "setuptools.build_meta"
 
 
 [project]
-name = "sift_cpp"
+name = "lion-sift-cpp"
 version = "0.0.1"
 authors = [
   { name="Lai" },
