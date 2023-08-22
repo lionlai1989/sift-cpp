@@ -7,7 +7,7 @@
 
 namespace py = pybind11;
 
-std::vector<sift::Keypoint> computeKeypointsAndDescriptors(Eigen::MatrixXd pixels) {
+std::vector<sift::Keypoint> computeKeypointsAndDescriptors(const xt::xarray<double> &pixels) {
     Image input_image(pixels);
     std::vector<sift::Keypoint> kps = sift::find_keypoints_and_descriptors(input_image);
     return kps;

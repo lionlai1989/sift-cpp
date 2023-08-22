@@ -6,8 +6,6 @@ import sys
 from setuptools import Extension, setup
 from setuptools.command.build_ext import build_ext
 
-__version__ = "0.0.1"
-
 PLAT_TO_CMAKE = {
     "win32": "Win32",
     "win-amd64": "x64",
@@ -117,20 +115,9 @@ class CMakeBuild(build_ext):
         subprocess.check_call(["cmake", "--build", "."] + build_args, cwd=build_temp)
 
 setup(
-    name="cpp-sift",
-    version=__version__,
-    author="ChihAn Lai",
-    author_email="lionlai1989@gmail.com",
-    url="https://github.com/lionlai1989/sift-cpp-pybind11",
-    description="A C++ implementation of SIFT and binding for Python.",
-    long_description="",
-    extras_require={"test": ["pytest", "rasterio", "numpy", "rpcm"]},
     # Currently, build_ext only provides an optional "highest supported C++
     # level" feature, but in the future it may provide more features.
-
     ext_modules=[CMakeExtension("cmake_example")],
     cmdclass={"build_ext": CMakeBuild},
     zip_safe=False,
-
-    python_requires=">=3.8",
 )
