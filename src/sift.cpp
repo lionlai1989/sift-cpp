@@ -78,10 +78,14 @@ bool point_is_extremum(const std::vector<Image> &octave, int scale, int x,
   const Image &next = octave[scale + 1];
 
   bool is_min = true, is_max = true;
+  assert(x >= 0 && x < img.width && y >= 0 && y < img.height);
   double val = img.get_pixel(x, y, 0), neighbor;
 
   for (int dx : {-1, 0, 1}) {
     for (int dy : {-1, 0, 1}) {
+      assert(x + dx >= 0 && x + dx < img.width && y + dy >= 0 &&
+             y + dy < img.height);
+
       neighbor = prev.get_pixel(x + dx, y + dy, 0);
       if (neighbor > val)
         is_max = false;
@@ -119,6 +123,12 @@ fit_quadratic(Keypoint &kp, const std::vector<Image> &octave, int scale) {
   double g1, g2, g3;
   double h11, h12, h13, h22, h23, h33;
   int x = kp.i, y = kp.j;
+  assert(x >= 0 && x < img.width);
+  assert(y >= 0 && y < img.height);
+  assert(x + 1 >= 0 && x + 1 < img.width);
+  assert(y + 1 >= 0 && y + 1 < img.height);
+  assert(x - 1 >= 0 && x - 1 < img.width);
+  assert(y - 1 >= 0 && y - 1 < img.height);
 
   // gradient
   g1 = (next.get_pixel(x, y, 0) - prev.get_pixel(x, y, 0)) * 0.5;
@@ -170,6 +180,12 @@ bool point_is_on_edge(const Keypoint &kp, const std::vector<Image> &octave,
   const Image &img = octave[kp.scale];
   double h11, h12, h22;
   int x = kp.i, y = kp.j;
+  assert(x >= 0 && x < img.width);
+  assert(y >= 0 && y < img.height);
+  assert(x + 1 >= 0 && x + 1 < img.width);
+  assert(y + 1 >= 0 && y + 1 < img.height);
+  assert(x - 1 >= 0 && x - 1 < img.width);
+  assert(y - 1 >= 0 && y - 1 < img.height);
   h11 = img.get_pixel(x + 1, y, 0) + img.get_pixel(x - 1, y, 0) -
         2 * img.get_pixel(x, y, 0);
   h22 = img.get_pixel(x, y + 1, 0) + img.get_pixel(x, y - 1, 0) -
@@ -235,6 +251,9 @@ std::vector<Keypoint> find_keypoints(const ScaleSpacePyramid &dog_pyramid,
       const Image &img = octave[j];
       for (int x = 1; x < img.width - 1; x++) {
         for (int y = 1; y < img.height - 1; y++) {
+          assert(x >= 0 && x < img.width);
+          assert(y >= 0 && y < img.height);
+
           if (std::abs(img.get_pixel(x, y, 0)) < 0.8 * contrast_thresh) {
             continue;
           }
@@ -267,6 +286,12 @@ ScaleSpacePyramid generate_gradient_pyramid(const ScaleSpacePyramid &pyramid) {
       double gx, gy;
       for (int x = 1; x < grad.width - 1; x++) {
         for (int y = 1; y < grad.height - 1; y++) {
+          assert(x >= 0 && x < pyramid.octaves[i][j].width);
+          assert(y >= 0 && y < pyramid.octaves[i][j].height);
+          assert(x + 1 >= 0 && x + 1 < pyramid.octaves[i][j].width);
+          assert(y + 1 >= 0 && y + 1 < pyramid.octaves[i][j].height);
+          assert(x - 1 >= 0 && x - 1 < pyramid.octaves[i][j].width);
+          assert(y - 1 >= 0 && y - 1 < pyramid.octaves[i][j].height);
           gx = (pyramid.octaves[i][j].get_pixel(x + 1, y, 0) -
                 pyramid.octaves[i][j].get_pixel(x - 1, y, 0)) *
                0.5;
@@ -327,6 +352,9 @@ find_keypoint_orientations(Keypoint &kp, const ScaleSpacePyramid &grad_pyramid,
   // accumulate gradients in orientation histogram
   for (int x = x_start; x <= x_end; x++) {
     for (int y = y_start; y <= y_end; y++) {
+      assert(x >= 0 && x < img_grad.width);
+      assert(y >= 0 && y < img_grad.height);
+
       gx = img_grad.get_pixel(x, y, 0);
       gy = img_grad.get_pixel(x, y, 1);
       grad_norm = std::sqrt(gx * gx + gy * gy);
@@ -447,6 +475,8 @@ void compute_keypoint_descriptor(Keypoint &kp, double theta,
           lambda_desc * (N_HIST + 1.) / N_HIST)
         continue;
 
+      assert(m >= 0 && m < img_grad.width);
+      assert(n >= 0 && n < img_grad.height);
       double gx = img_grad.get_pixel(m, n, 0), gy = img_grad.get_pixel(m, n, 1);
       double theta_mn =
           std::fmod(std::atan2(gy, gx) - theta + 4 * M_PI, 2 * M_PI);
@@ -550,6 +580,9 @@ Image draw_matches(const Image &a, const Image &b, std::vector<Keypoint> &kps_a,
 
   for (int i = 0; i < a.width; i++) {
     for (int j = 0; j < a.height; j++) {
+      assert(i >= 0 && i < a.width);
+      assert(j >= 0 && j < a.height);
+
       res.set_pixel(i, j, 0, a.get_pixel(i, j, 0));
       res.set_pixel(i, j, 1, a.get_pixel(i, j, a.channels == 3 ? 1 : 0));
       res.set_pixel(i, j, 2, a.get_pixel(i, j, a.channels == 3 ? 2 : 0));
