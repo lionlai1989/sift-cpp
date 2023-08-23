@@ -23,8 +23,8 @@ requires-python = ">=3.8"
 
 dependencies = [
     "numpy", # Required by xtensor.
+    "Pillow",
 ]
-
 
 [project.urls]
 "Homepage" = "https://github.com/lionlai1989/sift-cpp"

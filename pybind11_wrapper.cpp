@@ -1,9 +1,18 @@
 #include <pybind11/eigen.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <pybind11/numpy.h>
 
 #include "sift.hpp"
 #include "image.hpp"
+
+#include <xtensor/xarray.hpp>
+#include <xtensor/xmath.hpp>
+
+#define FORCE_IMPORT_ARRAY
+
+#include <xtensor-python/pyarray.hpp>
+#include <xtensor-python/pyvectorize.hpp>
 
 namespace py = pybind11;
 

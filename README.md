@@ -84,12 +84,21 @@ It's a C++ project with Python binding. Thus, the installation process is primar
     >>>
     ```
 
-- You can also download this image and run a testing script to visualize the result. 
+- You can also download the image `rectified_satellite_image.png` and run a testing script
+  `find_keypoints.py` to visualize the result.
   ```shell
-  python3 run_sift.py image.png
+  python3 examples/find_keypoints.py imgs/rectified_satellite_image.png
+  python3 find_keypoints.py rectified_satellite_image.png
   ```
-  If everything goes well, you shall see the following image.
-  Attach an image here.
+  If everything goes well, you shall see the following message:
+  ```
+  Input image's shape: (2045, 2488, 1).
+  Convert shape to (1, 2045, 2488).
+  Found 47510 keypoints.
+  The first keypoint:
+  kp.i: 435, kp.j: 123, kp.x: 217.3883486962404, kp.y: 61.563993150604524
+  kp.descriptor is a 128-vector whose shape is (128,).
+  ```
 
 
 ## Developing
