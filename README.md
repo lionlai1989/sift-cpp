@@ -2,6 +2,8 @@
 
 This repository contains a C++ implementation of the [SIFT (Scale-invariant Feature Transform) algorithm](https://en.wikipedia.org/wiki/Scale-invariant_feature_transform), along with Python bindings for easy integration into Python projects.
 
+This repository is mainly derived from the [original sift-cpp repository](https://github.com/dbarac/sift-cpp). 
+
 ## Description
 
 - Efficient C++ implementation of SIFT.
@@ -93,78 +95,53 @@ It's a C++ project with Python binding. Thus, the installation process is primar
 ## Developing
 
 ### Building
-The building process includes the automatic testing procedure.
+
+The following command builds the project in the `build/` folder and runs the tests automatically.
+```shell
+cmake -G Ninja -S . -B build/ && cmake --build build/ -j 4 && (cd build/; ctest -V)
+```
+If everything goes well, it should show the message below.
+```txt
+100% tests passed, 0 tests failed out of 21
+
+Total Test time (real) =  10.65 sec
+```
 
 ### Running
-After building, you can run two example commands to check the development results.
+After a successful building, two example commands, `find_keypoints` and `match_features`, are generated in `bin/`.
+These two commands can verify the overall SIFT implementation is correct.
+
 * Finding Keypoints:
+    ```shell
+    (cd bin/; ./find_keypoints ../imgs/book_rotated.jpg)
+    ```
+  The command above generates an image `find_keypoints_result.png` in the `bin/` as shown below:
+    <figure>
+    <img src="./bin/find_keypoints_result.png" alt="my alt text" height="300"/>
+    <figcaption style="font-size: small;"></figcaption>
+    </figure>
 
 * Matching Keypoints:
+    ```shell
+    (cd bin/; ./match_features ../imgs/book_rotated.jpg ../imgs/book_in_scene.jpg)
+    ```
+  The command above generates an image `match_features_result.jpg` in the `bin/` as shown below:
+    <figure>
+    <img src="./bin/match_features_result.jpg" alt="my alt text" height="300"/>
+    <figcaption style="font-size: small;"></figcaption>
+    </figure>
 
-### 
-
-## Usage example
-Find keypoints, match features in two images and save the result:
-```cpp
-#include <vector>
-#include "image.hpp"
-#include "sift.hpp"
-
-int main()
-{
-    Image img("./../imgs/book_rotated.jpg");
-    Image img2("./../imgs/book_in_scene.jpg");
-    img = rgb_to_grayscale(img);
-    img2 = rgb_to_grayscale(img2);
-    std::vector<sift::Keypoint> kps1 = sift::find_keypoints_and_descriptors(img);
-    std::vector<sift::Keypoint> kps2 = sift::find_keypoints_and_descriptors(img2);
-    std::vector<std::pair<int, int>> matches = sift::find_keypoint_matches(kps1, kps2);
-    Image book_matches = sift::draw_matches(img, img2, kps1, kps2, matches);
-    book_matches.save("book_matches.jpg");
-    return 0;
-}
-```
-
-Result:
-![Matching result](./imgs/book_matches.jpg)
-
-## Build and run the examples
-### Build
-```bash
-cmake -G Ninja -S . -B build/ && cmake --build build/ -j 4 && (cd build/; ctest -V)
-$ mkdir build/ && cd build && cmake .. && make
-```
-The executables will be in sift-cpp/bin/.
-
-### Run
-Find image keypoints, draw them and save the result:
-```bash
-$ cd bin/ && ./find_keypoints ../imgs/book_rotated.jpg
-```
-Input images can be .jpg or .png. Result image is saved as result.jpg
-
-![Keypoints result](./imgs/book_keypoints.jpg)
-
-Find keypoints in two images and match them, draw matches and save the result:
-```bash
-$ cd bin/ && ./match_features ../imgs/book_rotated.jpg ../imgs/book_in_scene.jpg
-```
-Result image is saved as result.jpg
-
-## Useful links
+## Reference:
 
 * [SIFT paper](https://www.cs.ubc.ca/~lowe/papers/ijcv04.pdf)
 * [Anatomy of the SIFT method](http://www.ipol.im/pub/art/2014/82/article.pdf)
 * [Blog post about a Python SIFT implementation](https://medium.com/@russmislam/implementing-sift-in-python-a-complete-guide-part-1-306a99b50aa5)
-* [the original](https://github.com/dbarac/sift-cpp)
 
 
-
-cmake -S . -B build -G Ninja && ninja -C build
-./bin/find_keypoints imgs/book_rotated.jpg
+<!-- 
 python3 -m pip install git+ssh://git@github.com/lionlai1989/sift-cpp-pybind11
 
 
 
 git submodule add https://gitlab.com/libeigen/eigen.git extern/eigen-3.4.0
-check out tag 3.4.0 and commit inside the submodule
+check out tag 3.4.0 and commit inside the submodule -->

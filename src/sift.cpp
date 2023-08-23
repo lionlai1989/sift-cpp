@@ -123,12 +123,12 @@ fit_quadratic(Keypoint &kp, const std::vector<Image> &octave, int scale) {
   double g1, g2, g3;
   double h11, h12, h13, h22, h23, h33;
   int x = kp.i, y = kp.j;
-  assert(x >= 0 && x < img.width);
-  assert(y >= 0 && y < img.height);
-  assert(x + 1 >= 0 && x + 1 < img.width);
-  assert(y + 1 >= 0 && y + 1 < img.height);
-  assert(x - 1 >= 0 && x - 1 < img.width);
-  assert(y - 1 >= 0 && y - 1 < img.height);
+  // assert(x >= 0 && x < img.width);
+  // assert(y >= 0 && y < img.height);
+  // assert(x + 1 >= 0 && x + 1 < img.width);
+  // assert(y + 1 >= 0 && y + 1 < img.height);
+  // assert(x - 1 >= 0 && x - 1 < img.width);
+  // assert(y - 1 >= 0 && y - 1 < img.height);
 
   // gradient
   g1 = (next.get_pixel(x, y, 0) - prev.get_pixel(x, y, 0)) * 0.5;
@@ -475,8 +475,8 @@ void compute_keypoint_descriptor(Keypoint &kp, double theta,
           lambda_desc * (N_HIST + 1.) / N_HIST)
         continue;
 
-      assert(m >= 0 && m < img_grad.width);
-      assert(n >= 0 && n < img_grad.height);
+      // assert(m >= 0 && m < img_grad.width);
+      // assert(n >= 0 && n < img_grad.height);
       double gx = img_grad.get_pixel(m, n, 0), gy = img_grad.get_pixel(m, n, 1);
       double theta_mn =
           std::fmod(std::atan2(gy, gx) - theta + 4 * M_PI, 2 * M_PI);

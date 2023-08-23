@@ -23,7 +23,8 @@ find_package(xtl REQUIRED)
 find_package(xtensor REQUIRED)
 find_package(xsimd REQUIRED)
 
-add_subdirectory(extern/xtensor-python)
+# Why the following line is not necessary?
+# add_subdirectory(extern/xtensor-python)
 
 add_subdirectory(src)
 add_subdirectory(examples)
