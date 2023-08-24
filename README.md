@@ -58,7 +58,7 @@ This is a C++ project with Python bindings. Therefore, the installation process 
   python3 -m pip install -e .
   ```
 
-* Create a Python virtual environment `venv`, activate `venv`, and update pip:
+* Create a Python virtual environment `venv_sift`, activate `venv_sift`, and update pip:
   ```shell
   python3 -m venv venv_sift && source venv_sift/bin/activate && python3 -m pip install --upgrade pip
   ```
