@@ -21,8 +21,8 @@ int main(int argc, char *argv[])
     std::vector<sift::Keypoint> kps_b = sift::find_keypoints_and_descriptors(b);
     std::vector<std::pair<int, int>> matches = sift::find_keypoint_matches(kps_a, kps_b);
     Image result = sift::draw_matches(a, b, kps_a, kps_b, matches);
-    result.save("result.jpg");
+    result.save("match_features_result.jpg");
     
-    std::cout << "Found " << matches.size() << " feature matches. Output image is saved as result.jpg\n";
+    std::cout << "Found " << matches.size() << " feature matches. Output image is saved as a jpg file.\n";
     return 0;
 }

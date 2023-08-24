@@ -1,3 +1,34 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel", "ninja", "cmake>=3.12",]
+# numpy is essential for building xtensor.
+requires = [
+    "pip<=23.0",
+    "setuptools>=62,<=65",
+    "wheel",
+    "ninja",
+    "cmake>=3.22",
+    "numpy"
+]
 build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "lion-sift-cpp"
+version = "0.0.1"
+authors = [
+  { name="Lai" },
+]
+description = "A C++ Project Template with Pybind11"
+readme = "README.md"
+requires-python = ">=3.8"
+
+dependencies = [
+    "numpy", # Required by xtensor.
+    "Pillow",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/lionlai1989/sift-cpp"
+
+[project.optional-dependencies]
+dev = ["black"]
+mytest = ["pytest"]

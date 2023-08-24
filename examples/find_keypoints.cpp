@@ -22,8 +22,8 @@ int main(int argc, char *argv[])
 
     std::vector<sift::Keypoint> kps = sift::find_keypoints_and_descriptors(img);
     Image result = sift::draw_keypoints(img, kps);
-    result.save("result.jpg");
+    result.save("find_keypoints_result.png");
 
-    std::cout << "Found " << kps.size() << " keypoints. Output image is saved as result.jpg\n";
+    std::cout << "Found " << kps.size() << " keypoints. Output image is saved as a png file.\n";
     return 0;
 }
