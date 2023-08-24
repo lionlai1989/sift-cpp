@@ -2,14 +2,14 @@
 
 This repository contains a C++ implementation of the [SIFT (Scale-invariant Feature Transform) algorithm](https://en.wikipedia.org/wiki/Scale-invariant_feature_transform), along with Python bindings for easy integration into Python projects.
 
-This repository is mainly derived from the [original sift-cpp repository](https://github.com/dbarac/sift-cpp). 
+This repository is mainly derived from this [original sift-cpp repository](https://github.com/dbarac/sift-cpp). 
 
 ## Description
 
 - Use `xtensor` to replace `eigen` perform array operation.
 - Efficient C++ implementation of SIFT.
-- Python binding for seamless usage in Python projects.
-- Uses stb_image and stb_image_write libraries for loading and saving images (included in this repository).
+- Use `pybind11` for seamlessly integration into Python projects.
+- Uses `stb_image` and `stb_image_write` libraries for loading and saving images.
 
 ## Getting Started
 
@@ -21,9 +21,9 @@ Before you start, please make sure you have the following dependencies installed
 
 * **CMake 3.22.0 or higher**: If you don't have CMake installed, or if you need to update it, you can follow the instructions [here](https://askubuntu.com/questions/355565/how-do-i-install-the-latest-version-of-cmake-from-the-command-line). To use version 3.22, you can download it from https://cmake.org/files/v3.22/cmake-3.22.6.tar.gz.
 
-* **[stb image library]((https://github.com/nothings/stb))**: C library for loading and saving images. It's included as a git submodule, so you don't need to do anything extra.
+* **[stb image library](https://github.com/nothings/stb)**: C library for loading and saving images. `stb` is included as a git submodule, so you don't need to do anything else to install it.
 
-* **Pybind11**: It is included as a git submodule, so you don't need to do anything extra.
+* **Pybind11**: It creates Python binding for Python projects. `Pybind11` is included as a git submodule, so you don't need to do anything else to install it.
 
 * **xtensor-assosiated library**: `xtensor` is a numpy for C++ library. All
   required `xtensor` code is added as git submodules. Unlike `Pybind11` library, I
@@ -47,20 +47,20 @@ Before you start, please make sure you have the following dependencies installed
 
 ### Installing
 
-It's a C++ project with Python binding. Thus, the installation process is primary aiming for Python users. Please follow the steps below to install this Python package `lion-sift-cpp`.
+This is a C++ project with Python bindings. Therefore, the installation process primarily targets Python users. Please follow the steps below to install this Python package, `lion-sift-cpp`.
 
 * (Optional) Download this repository.
   ```shell
   git clone --recursive https://github.com/lionlai1989/sift-cpp.git
   ```
-  If you forgot to use the `--recursive` option when cloning, you can still clone the submodules by running the command `git submodule update --init --recursive`. Generally, you probably don't want to clone this repository. As a side note, you can also install this repository in editable mode.
+  If you forgot to use the `--recursive` option when cloning, you can still clone the submodules by running the command `git submodule update --init --recursive`. Generally, you don't need to clone this repository to install this package. As a side note, you can also install this repository in editable mode.
   ```
   python3 -m pip install -e .
   ```
 
 * Create a Python virtual environment `venv`, activate `venv`, and update pip:
   ```shell
-  python3 -m venv venv && source venv/bin/activate && python3 -m pip install --upgrade pip
+  python3 -m venv venv_sift && source venv_sift/bin/activate && python3 -m pip install --upgrade pip
   ```
 
 * Install from the repository: Notice the name of the package is `lion-sift-cpp`.
@@ -85,8 +85,8 @@ It's a C++ project with Python binding. Thus, the installation process is primar
     >>>
     ```
 
-- You can also download the image `rectified_satellite_image.png` and run a testing script
-  `find_keypoints.py` to visualize the result.
+- You can also download the image [`rectified_satellite_image.png`](https://github.com/lionlai1989/sift-cpp/blob/refactor-with-xtensor/imgs/rectified_satellite_image.png) and run a testing script
+  [`find_keypoints.py`](https://github.com/lionlai1989/sift-cpp/blob/refactor-with-xtensor/examples/find_keypoints.py) to visualize the result.
   ```shell
   python3 examples/find_keypoints.py imgs/rectified_satellite_image.png
   python3 find_keypoints.py rectified_satellite_image.png
