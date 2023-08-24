@@ -6,6 +6,7 @@ This repository is mainly derived from the [original sift-cpp repository](https:
 
 ## Description
 
+- Use `xtensor` to replace `eigen` perform array operation.
 - Efficient C++ implementation of SIFT.
 - Python binding for seamless usage in Python projects.
 - Uses stb_image and stb_image_write libraries for loading and saving images (included in this repository).
@@ -139,6 +140,13 @@ These two commands can verify the overall SIFT implementation is correct.
     <img src="./bin/match_features_result.jpg" alt="my alt text" height="300"/>
     <figcaption style="font-size: small;"></figcaption>
     </figure>
+
+## Version History
+
+* 2.0.0
+    * `xtensor` needs to be installed first on the system and then `sift-cpp` can be installed. Use `xtensor` to perform array operation.
+* 1.0.0
+    * `sift-cpp` is installable via `pip`. No other dependencies need to be installed beforehand.
 
 ## Reference:
 
